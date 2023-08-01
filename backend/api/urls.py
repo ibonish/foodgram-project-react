@@ -6,7 +6,7 @@ from .views import IngredientViewSet, RecipeViewSet, TagViewSet, UserViewSet
 app_name = 'api'
 
 
-router = SimpleRouter() 
+router = SimpleRouter()
 router.register('tags', TagViewSet, 'tags')
 router.register('ingredients', IngredientViewSet, 'ingredients')
 router.register('recipes', RecipeViewSet, 'recipes')
