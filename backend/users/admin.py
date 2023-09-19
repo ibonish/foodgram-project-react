@@ -1,4 +1,6 @@
-from django.contrib.admin import register
-from users.models import User
+from django.contrib import admin
 
-register(User)
+from .models import Subscriptions, User
+
+admin.site.register(User)
+admin.site.register(Subscriptions)
