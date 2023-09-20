@@ -1,12 +1,11 @@
 import django_filters
-from recipes.models import Recipes
-from django_filters.rest_framework import FilterSet, filters
-from recipes.models import Tags, Ingridients
+from django_filters.rest_framework import filters
+from recipes.models import Ingridients, Recipes, Tags
 
 
 class IngredientFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='istartswith')
-    
+
     class Meta:
         model = Ingridients
         fields = ['name']
