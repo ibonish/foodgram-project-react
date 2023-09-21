@@ -234,7 +234,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ingredient_name = ing.ingredients.name
                 measurement_unit = ing.ingredients.measurement_unit
                 amount = ing.amount
-                final_list += f"{ingredient_name} - {amount} ({measurement_unit})\n"
+                final_list += (
+                    f"{ingredient_name} - {amount} ({measurement_unit})\n"
+                )
         response = HttpResponse(final_list, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_cart.txt"'
+        )
         return response
