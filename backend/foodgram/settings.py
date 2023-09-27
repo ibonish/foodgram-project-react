@@ -67,10 +67,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-
 if (os.getenv('PROD', default='False') != 'True'):
     DATABASES = {
         'default': {
