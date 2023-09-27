@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='secret-key')
 DEBUG = (os.getenv('DEBUG', default='False') == 'True')
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(',')
-
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', default='*').split(',')
 
 # Application definition
 
