@@ -1,5 +1,6 @@
 import django_filters
 from django_filters.rest_framework import filters
+
 from recipes.models import Ingridients, Recipes, Tags
 
 
@@ -25,17 +26,6 @@ class RecipeFilter(django_filters.FilterSet):
         method='filter_is_in_shopping_cart'
     )
 
-    author = django_filters.NumberFilter(
-        field_name='author',
-        method='filter_author'
-    )
-
-    # tags = django_filters.CharFilter(
-    #     field_name='tags__slug',
-    #     method='filter_tags',
-    #     lookup_expr='in'
-    # )
-
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
@@ -43,26 +33,17 @@ class RecipeFilter(django_filters.FilterSet):
     )
 
     def filter_is_favorited(self, queryset, name, value):
-        if value == 1:
-            user = self.request.user
-            if not user.is_anonymous:
-                return queryset.filter(favorite__user=user)
+        user = self.request.user
+        if value and user.is_authenticated:
+            return queryset.filter(favorite__user=user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        if value == 1:
-            user = self.request.user
-            if not user.is_anonymous:
-                return queryset.filter(carts__user=user)
+        user = self.request.user
+        if value and user.is_authenticated:
+            return queryset.filter(carts__user=user)
         return queryset
-
-    def filter_author(self, queryset, name, value):
-        return queryset.filter(author=value)
-
-    # def filter_tags(self, queryset, name, value):
-    #     tags = value.split('&')
-    #     return queryset.filter(tags__slug__in=tags)
 
     class Meta:
         model = Recipes
-        fields = ['is_favorited', 'is_in_shopping_cart', 'author', 'tags']
+        fields = ('is_favorited', 'is_in_shopping_cart', 'author', 'tags')
