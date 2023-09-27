@@ -1,9 +1,8 @@
-from django.contrib.auth import get_user_model
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import (MaxValueValidator,
+                                    MinValueValidator,)
 from django.db import models
 from colorfield.fields import ColorField
-from django.utils.html import format_html
+
 from foodgram.settings import CONSTANTS
 from users.models import User
 

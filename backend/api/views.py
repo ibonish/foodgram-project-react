@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -92,8 +91,10 @@ class FoodgramUserViewSet(UserViewSet):
             'user': from_user,
             'author': to_user
         }
-        serializer = CreateSubscriptionsSerializer(data=data,
-                                                   context={'request': request})
+        serializer = CreateSubscriptionsSerializer(
+            data=data,
+            context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
