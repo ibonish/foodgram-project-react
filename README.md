@@ -1,6 +1,6 @@
 # praktikum_new_diplom
 
-![status badge](https://github.com/ibonish/foodgram-project-react/actions/workflows/main.yaml/badge.svg)
+![Foodgram Workflow](https://github.com/ibonish/foodgram-project-react/actions/workflows/main.yaml/badge.svg)
 
 Развернутый проект:
 http://45.87.246.221/signin
