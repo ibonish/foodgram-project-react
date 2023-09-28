@@ -2,24 +2,24 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from foodgram.settings import CONSTANTS
+from .constants import EMAIL, MAX_LEN_USER
 
 
 class User(AbstractUser):
     email = models.EmailField(verbose_name='Почта',
-                              max_length=CONSTANTS['EMAIL'],
+                              max_length=EMAIL,
                               unique=True)
     username = models.CharField(unique=True,
-                                max_length=CONSTANTS['MAX_1'],
+                                max_length=MAX_LEN_USER,
                                 verbose_name='Ник')
     first_name = models.CharField(verbose_name='Имя',
-                                  max_length=CONSTANTS['MAX_1'])
+                                  max_length=MAX_LEN_USER)
     last_name = models.CharField(verbose_name='Фамилия',
-                                 max_length=CONSTANTS['MAX_1'])
+                                 max_length=MAX_LEN_USER)
     password = models.CharField(verbose_name='Пароль',
-                                max_length=CONSTANTS['MAX_1'])
+                                max_length=MAX_LEN_USER)
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
+    REQUIRED_FIELDS = ('first_name', 'last_name', 'username')
 
     class Meta:
         ordering = ('username', )
@@ -32,11 +32,11 @@ class User(AbstractUser):
 
 class Subscriptions(models.Model):
     author = models.ForeignKey(User,
-                               related_name='subscribers',
+                               related_name='subscriptions',
                                on_delete=models.CASCADE,
                                verbose_name='Автор')
     user = models.ForeignKey(User,
-                             related_name='subscriptions',
+                             related_name='subscribers',
                              on_delete=models.CASCADE,
                              verbose_name='Подписчик')
 
@@ -54,6 +54,7 @@ class Subscriptions(models.Model):
     def clean(self):
         if self.author == self.user:
             raise ValidationError('Нельзя подписаться на самого себя')
+        return super().save(self)
 
     def __str__(self):
         return f'{self.user.username} подписался на {self.author.username}'

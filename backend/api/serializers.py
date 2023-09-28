@@ -2,8 +2,8 @@ from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
-from foodgram.settings import CONSTANTS
 from users.models import Subscriptions, User
+from recipes.constants import MAX_VAL_AMOUNT, MAX_VAL_COOK, MIN_VAL
 from recipes.models import (
     AmountIngridients,
     Carts,
@@ -44,8 +44,9 @@ class FoodgramUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return user.is_authenticated and Subscriptions.objects.filter(
-            user=user, author=obj.id).exists()
+        return user.is_authenticated and user.subscribers.filter(
+            author=obj.id
+        ).exists()
 
 
 class ShortRecipesSerializer(serializers.ModelSerializer):
@@ -71,7 +72,6 @@ class SubscriptionsSerializer(FoodgramUserSerializer):
     """
     Сериализатор для отображения пользователей при подписке.
     """
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
@@ -114,9 +114,8 @@ class CreateSubscriptionsSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        request = self.context.get('request')
-        context = {'request': request}
-        return SubscriptionsSerializer(instance.author, context=context).data
+        return SubscriptionsSerializer(instance.author,
+                                       context=self.context).data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -154,11 +153,9 @@ class GetAmountIngredientSerializer(serializers.ModelSerializer):
 
 
 class PostAmountIngredientSerializer(serializers.ModelSerializer):
-
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingridients.objects.all(),
-                                            many=False)
-    amount = serializers.IntegerField(min_value=CONSTANTS['MIN_VAL'],
-                                      max_value=CONSTANTS['MAX_VAL_AMOUNT'],)
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingridients.objects.all())
+    amount = serializers.IntegerField(min_value=MIN_VAL,
+                                      max_value=MAX_VAL_AMOUNT,)
 
     class Meta:
         model = AmountIngridients
@@ -192,25 +189,36 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, object):
         user = self.context.get('request').user
-        return user.is_authenticated and Favorite.objects.filter(
-            user=user, recipe=object).exists()
+        return user.is_authenticated and user.favorite.filter(
+            recipe=object
+        ).exists()
+        # return user.is_authenticated and Favorite.objects.filter(
+        #     user=user, recipe=object
+        # ).exists()
 
     def get_is_in_shopping_cart(self, object):
         user = self.context.get('request').user
-        return user.is_authenticated and Carts.objects.filter(
-            user=user, recipe=object).exists()
+        return user.is_authenticated and user.carts.filter(
+            recipe=object
+        ).exists()
+        # return user.is_authenticated and Carts.objects.filter(
+        #     user=user, recipe=object
+        # ).exists()
 
 
 class CreateUpdateRecipeSerializer(serializers.ModelSerializer):
     """
     Сериализатор для создания рецептов.
     """
-    ingredients = PostAmountIngredientSerializer(many=True,
-                                                 source='ingredients_used')
+    ingredients = PostAmountIngredientSerializer(many=True, )
     tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(),
                                               many=True)
     author = FoodgramUserSerializer(read_only=True, )
     image = Base64ImageField()
+    cooking_time = serializers.IntegerField(
+        min_value=MIN_VAL,
+        max_value=MAX_VAL_COOK
+    )
 
     class Meta:
         model = Recipes
@@ -237,7 +245,7 @@ class CreateUpdateRecipeSerializer(serializers.ModelSerializer):
         AmountIngridients.objects.bulk_create(ingredients_to_create)
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients_used')
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         user = self.context['request'].user
         recipe = Recipes.objects.create(author=user, **validated_data)
@@ -246,7 +254,7 @@ class CreateUpdateRecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        new_ingredients = validated_data.pop('ingredients_used')
+        new_ingredients = validated_data.pop('ingredients')
         new_tags = validated_data.pop('tags')
         instance.tags.clear()
         instance.tags.set(new_tags)
@@ -273,12 +281,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        request = self.context.get('request')
-        context = {'request': request}
-        return ShortRecipesSerializer(instance.recipe, context=context).data
+        return ShortRecipesSerializer(instance.recipe,
+                                      context=self.context).data
 
 
 class CartsSerializer(FavoriteSerializer):
     class Meta:
         model = Carts
-        fields = '__all__'
+        fields = ('user', 'recipe')

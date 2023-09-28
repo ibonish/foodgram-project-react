@@ -37,7 +37,13 @@ class IngredientAdmin(ImportExportModelAdmin):
 class RecipeAdmin(ModelAdmin):
     inlines = (IngredientInline, )
     list_display = (
-        'name', 'author', 'tags_list', 'ingredient_list', 'cooking_time'
+        'name',
+        'author',
+        'get_tags',
+        'get_ingredients',
+        'cooking_time',
+        'get_image',
+        'get_favorite'
     )
     fields = (
         ('name', ),
@@ -49,11 +55,11 @@ class RecipeAdmin(ModelAdmin):
     )
 
     @admin.display(description='Избранное')
-    def favorite(self, obj):
+    def get_favorite(self, obj):
         return obj.favorite.count()
 
     @admin.display(description='Ингредиенты')
-    def ingredient_list(self, obj):
+    def get_ingredients(self, obj):
         return ', '.join([ing.name for ing in obj.ingredients.all()])
 
     @admin.display(description='Изображение')
@@ -61,7 +67,7 @@ class RecipeAdmin(ModelAdmin):
         return mark_safe(f'<img src={obj.image.url} width="80" height="60">')
 
     @admin.display(description='Тэги')
-    def tags_list(self, obj):
+    def get_tags(self, obj):
         return ', '.join([tag.name for tag in obj.tags.all()])
 
 

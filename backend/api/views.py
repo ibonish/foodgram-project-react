@@ -1,4 +1,5 @@
-from django.http import HttpResponse
+from django.http import FileResponse
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import filters, status, viewsets
@@ -85,10 +86,9 @@ class FoodgramUserViewSet(UserViewSet):
     )
     def subscribe(self, request, id):
         from_user = request.user.id
-        to_user = User.objects.get(id=id).id
         data = {
             'user': from_user,
-            'author': to_user
+            'author': id
         }
         serializer = CreateSubscriptionsSerializer(
             data=data,
@@ -101,20 +101,15 @@ class FoodgramUserViewSet(UserViewSet):
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
         from_user = request.user
-        try:
-            to_user = User.objects.get(id=id)
-        except User.DoesNotExist:
-            return Response({'error': 'Пользователя не существует'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        subscription = Subscriptions.objects.filter(author=to_user,
+        subscription = Subscriptions.objects.filter(author_id=id,
                                                     user=from_user)
-        if not subscription.exists():
-            return Response(
-                {'error': 'Вы не подписаны на данного пользователя'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        subscription.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if subscription.exists():
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'error': 'Вы не подписаны на данного пользователя'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(methods=['GET', ],
             permission_classes=(IsAuthenticated, ),
@@ -122,7 +117,7 @@ class FoodgramUserViewSet(UserViewSet):
             )
     def subscriptions(self, request):
         authors = User.objects.filter(
-            subscribers__user=request.user
+            subscriptions__user=request.user
         )
         page = self.paginate_queryset(authors)
         if page is not None:
@@ -141,7 +136,10 @@ class FoodgramUserViewSet(UserViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipes.objects.all()
+    queryset = Recipes.objects.select_related('author').prefetch_related(
+        'ingredients',
+        'tags'
+    )
     serializer_class = RecipeSerializer
     pagination_class = LimitPagination
     permission_classes = (IsAuthenticatedAuthorOrReadOnly, )
@@ -168,12 +166,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @staticmethod
     def delete_relation(request, pk, model):
         user = request.user
-        try:
-            recipe = Recipes.objects.get(id=pk)
-        except Recipes.DoesNotExist:
-            return Response({'error': 'Рецепта не существует'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
+        recipe = Recipes.objects.get(id=pk)
         object = model.objects.filter(user=user,
                                       recipe=recipe)
         if object.exists():
@@ -206,17 +199,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
         ingredients_used = AmountIngridients.objects.filter(
             recipe__carts__user=user
-        )
+        ).values(
+            'ingredients__name', 'ingredients__measurement_unit'
+        ).annotate(
+            amount=Sum('amount')
+        ).order_by('ingredients__name')
+
         final_list = ''
         for i in ingredients_used:
-            ingredient_name = i.ingredients.name
-            measurement_unit = i.ingredients.measurement_unit
-            amount = i.amount
+            ingredient_name = i['ingredients__name']
+            measurement_unit = i['ingredients__measurement_unit']
+            amount = i['amount']
             final_list += (
                 f"{ingredient_name} - {amount} ({measurement_unit})\n"
             )
-        response = HttpResponse(final_list, content_type='text/plain')
-        response['Content-Disposition'] = (
-            'attachment; filename="shopping_cart.txt"'
-        )
+        with open('shopping_cart.txt', 'w') as file:
+            file.write(final_list)
+
+        response = FileResponse(open('shopping_cart.txt', 'rb'))
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="shopping_cart.txt"'
         return response

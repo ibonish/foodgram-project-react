@@ -3,16 +3,16 @@ from django.core.validators import (MaxValueValidator,
 from django.db import models
 from colorfield.fields import ColorField
 
-from foodgram.settings import CONSTANTS
+from .constants import MAX_LEN_RECIPE, MAX_VAL_AMOUNT, MAX_VAL_COOK, MIN_VAL
 from users.models import User
 
 
 class Tags(models.Model):
-    name = models.CharField(max_length=CONSTANTS['MAX_2'],
+    name = models.CharField(max_length=MAX_LEN_RECIPE,
                             verbose_name='Тег')
     color = ColorField(default='#FF0000',
                        verbose_name='Цвет')
-    slug = models.SlugField(max_length=CONSTANTS['MAX_2'],
+    slug = models.SlugField(max_length=MAX_LEN_RECIPE,
                             verbose_name='Слаг')
 
     class Meta:
@@ -25,9 +25,9 @@ class Tags(models.Model):
 
 
 class Ingridients(models.Model):
-    name = models.CharField(max_length=CONSTANTS['MAX_2'],
+    name = models.CharField(max_length=MAX_LEN_RECIPE,
                             verbose_name='Ингредиент')
-    measurement_unit = models.CharField(max_length=CONSTANTS['MAX_2'],
+    measurement_unit = models.CharField(max_length=MAX_LEN_RECIPE,
                                         verbose_name='Единица измерения')
 
     class Meta:
@@ -58,23 +58,22 @@ class Recipes(models.Model):
                                          through_fields=('recipe',
                                                          'ingredients'),
                                          related_name='recipes_ingredients',
-                                         verbose_name='Ингредиенты'
-                                         )
-    name = models.CharField(max_length=CONSTANTS['MAX_2'],
+                                         verbose_name='Ингредиенты')
+    name = models.CharField(max_length=MAX_LEN_RECIPE,
                             verbose_name='Название')
     image = models.ImageField(upload_to='images/',
                               verbose_name='Картинка')
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
-        validators=[MinValueValidator(CONSTANTS['MIN_VAL']),
-                    MaxValueValidator(CONSTANTS['MAX_VAL_COOK'])]
+        validators=[MinValueValidator(MIN_VAL),
+                    MaxValueValidator(MAX_VAL_COOK)]
     )
     pub_date = models.DateTimeField(auto_now_add=True,
                                     verbose_name='Дата публикации')
 
     class Meta:
-        ordering = ('pub_date', )
+        ordering = ('-pub_date', )
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -88,8 +87,8 @@ class AmountIngridients(models.Model):
                                     on_delete=models.CASCADE)
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        validators=[MinValueValidator(CONSTANTS['MIN_VAL']),
-                    MaxValueValidator(CONSTANTS['MAX_VAL_AMOUNT'])]
+        validators=[MinValueValidator(MIN_VAL),
+                    MaxValueValidator(MAX_VAL_AMOUNT)]
     )
 
     class Meta:

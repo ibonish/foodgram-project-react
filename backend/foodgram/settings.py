@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='secret-key')
 
-DEBUG = (os.getenv('DEBUG', default='False') == 'True')
+DEBUG = os.getenv('DEBUG', default='False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(',')
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', default='*').split(',')
@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'recipes',
     'users',
     'api',
-
 ]
 
 MIDDLEWARE = [
@@ -67,7 +66,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-if (os.getenv('PROD', default='False') != 'True'):
+if os.getenv('PROD', default='False') != 'True':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -88,8 +87,6 @@ else:
 
 AUTH_USER_MODEL = 'users.User'
 
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -131,12 +128,9 @@ DJOSER = {
         'user_list': 'api.serializers.FoodgramUserSerializer',
         'user': 'api.serializers.FoodgramUserSerializer',
         'current_user': 'api.serializers.FoodgramUserSerializer',
-        # 'user_create': 'api.serializers.CustomUserCreateSerializer',
     },
 }
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru'
 
@@ -160,13 +154,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-CONSTANTS = {
-    'EMAIL': 254,
-    'MAX_1': 150,
-    'MAX_2': 200,
-    'HEX': 7,
-    'MIN_VAL': 1,
-    'MAX_VAL_COOK': 1000,
-    'MAX_VAL_AMOUNT': 10000
-}
