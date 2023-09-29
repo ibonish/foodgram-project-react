@@ -54,6 +54,8 @@ DB_PORT=5432
 CSRF_TRUSTED_ORIGINS=https://[your_api],https://localhost
 ```
 
+перейдите в папрку `infra` и выполните следующие команды:
+
 ```
 sudo docker compose -f docker-compose.production.yml up -d
 ```
