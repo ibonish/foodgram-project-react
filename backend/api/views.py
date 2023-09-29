@@ -166,9 +166,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @staticmethod
     def delete_relation(request, pk, model):
         user = request.user
-        recipe = Recipes.objects.get(id=pk)
         object = model.objects.filter(user=user,
-                                      recipe=recipe)
+                                      recipe_id=pk)
         if object.exists():
             object.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -193,6 +192,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_shopping_cart(self, request, pk):
         return self.delete_relation(request, pk, Carts)
 
+    @staticmethod
+    def get_file_response(quryset):
+        final_list = ''
+        for ingredient in quryset:
+            ingredient_name = ingredient['ingredients__name']
+            measurement_unit = ingredient['ingredients__measurement_unit']
+            amount = ingredient['amount']
+            final_list += (
+                f'{ingredient_name} - {amount} ({measurement_unit})\n'
+            )
+        with open('shopping_cart.txt', 'w') as file:
+            file.write(final_list)
+
+        response = FileResponse(open('shopping_cart.txt', 'rb'))
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="shopping_cart.txt"'
+        return response
+
     @action(methods=['GET', ],
             detail=False)
     def download_shopping_cart(self, request):
@@ -204,20 +222,4 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).annotate(
             amount=Sum('amount')
         ).order_by('ingredients__name')
-
-        final_list = ''
-        for i in ingredients_used:
-            ingredient_name = i['ingredients__name']
-            measurement_unit = i['ingredients__measurement_unit']
-            amount = i['amount']
-            final_list += (
-                f"{ingredient_name} - {amount} ({measurement_unit})\n"
-            )
-        with open('shopping_cart.txt', 'w') as file:
-            file.write(final_list)
-
-        response = FileResponse(open('shopping_cart.txt', 'rb'))
-        response[
-            'Content-Disposition'
-        ] = 'attachment; filename="shopping_cart.txt"'
-        return response
+        self.get_file_response(ingredients_used)

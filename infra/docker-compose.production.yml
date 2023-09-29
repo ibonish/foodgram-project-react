@@ -5,7 +5,7 @@ services:
     image: ibonish/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
-  
+
 
   db:
     image: postgres:13.0-alpine
@@ -24,6 +24,8 @@ services:
       - media_dir:/app/media/
     env_file:
       - ../backend/foodgram/.env
+    depends_on:
+      - db
 
 
   nginx:
@@ -39,6 +41,7 @@ services:
       - media_dir:/var/html/media/
     depends_on:
       - backend
+      - frontend
 
 
 volumes:
