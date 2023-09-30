@@ -202,10 +202,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             final_list += (
                 f'{ingredient_name} - {amount} ({measurement_unit})\n'
             )
-        with open('shopping_cart.txt', 'w') as file:
-            file.write(final_list)
 
-        response = FileResponse(open('shopping_cart.txt', 'rb'))
+        response = FileResponse(final_list, content_type='text/plain')
         response[
             'Content-Disposition'
         ] = 'attachment; filename="shopping_cart.txt"'
