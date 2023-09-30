@@ -220,4 +220,4 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).annotate(
             amount=Sum('amount')
         ).order_by('ingredients__name')
-        self.get_file_response(ingredients_used)
+        return self.get_file_response(ingredients_used)
